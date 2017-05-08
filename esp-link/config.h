@@ -41,6 +41,9 @@ typedef struct {
   int8_t   data_bits;
   int8_t   parity;
   int8_t   stop_bits;
+//EAGLEDAWG - prepend MQTT Client ID as first node of topic
+  uint8_t  mqtt_topic_begin;		   // Start MQTT topics with the Client ID as the first node
+//EAGLEDAWG - END
 } FlashConfig;
 extern FlashConfig flashConfig;
 

@@ -12,9 +12,12 @@ extern MQTT_Client mqttClient;
 
 //===== MQTT Status update
 
+//EAGLEDAWG - Send health status messages every hour instead of every minute
 // Every minute...
-#define MQTT_STATUS_INTERVAL (60*1000)
-
+//#define MQTT_STATUS_INTERVAL (60*1000)
+// Every hour...
+#define MQTT_STATUS_INTERVAL (60*1000*60)
+//EAGLEDAWG - END
 static ETSTimer mqttStatusTimer;
 
 int ICACHE_FLASH_ATTR

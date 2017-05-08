@@ -35,6 +35,9 @@ FlashConfig flashDefault = {
   .data_bits	= EIGHT_BITS,
   .parity	= NONE_BITS,
   .stop_bits	= ONE_STOP_BIT,
+//EAGLEDAWG - prepend MQTT Client ID as first node of topic
+  .mqtt_topic_begin = 0,
+//EAGLEDAWG - END
 };
 
 typedef union {

@@ -61,14 +61,20 @@ int ICACHE_FLASH_ATTR cgiMqttGet(HttpdConnData *connData) {
       "\"mqtt-username\":\"%s\", "
       "\"mqtt-password\":\"%s\", "
       "\"mqtt-status-topic\":\"%s\", "
-      "\"mqtt-status-value\":\"%s\" }",
+//EAGLEDAWG - prepend MQTT Client ID as first node of topic
+      "\"mqtt-status-value\":\"%s\", "
+      "\"mqtt-topic-begin\":%d }",
+//EAGLEDAWG - END
       flashConfig.slip_enable, flashConfig.mqtt_enable,
       mqtt_states[mqttClient.connState], flashConfig.mqtt_status_enable,
       flashConfig.mqtt_clean_session, flashConfig.mqtt_port,
       flashConfig.mqtt_timeout, flashConfig.mqtt_keepalive,
       flashConfig.mqtt_host, flashConfig.mqtt_clientid,
       flashConfig.mqtt_username, flashConfig.mqtt_password,
-      flashConfig.mqtt_status_topic, status_buf2);
+//EAGLEDAWG - prepend MQTT Client ID as first node of topic
+      flashConfig.mqtt_status_topic, status_buf2,
+	  flashConfig.mqtt_topic_begin);
+//EAGLEDAWG - END
 
   jsonHeader(connData, 200);
   httpdSend(connData, buff, len);
@@ -77,6 +83,11 @@ int ICACHE_FLASH_ATTR cgiMqttGet(HttpdConnData *connData) {
 
 int ICACHE_FLASH_ATTR cgiMqttSet(HttpdConnData *connData) {
   if (connData->conn==NULL) return HTTPD_CGI_DONE;
+
+//EAGLEDAWG - prepend MQTT Client ID as first node of topic
+  getBoolArg(connData, "mqtt-topic-begin",
+      &flashConfig.mqtt_topic_begin);
+//EAGLEDAWG - END
 
   // handle MQTT server settings
   int8_t mqtt_server = 0; // accumulator for changes/errors
