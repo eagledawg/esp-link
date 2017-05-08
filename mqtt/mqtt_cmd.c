@@ -13,6 +13,9 @@
 #define DBG(format, ...) do { } while(0)
 #endif
 
+//EAGLEDAWG - prepend MQTT Client ID as first node of topic
+#include "config.h"
+//EAGLEDAWG - END
 static bool blocked; // flag to prevent MQTT from sending on serial while trying to PGM uC
 
 void ICACHE_FLASH_ATTR
@@ -97,6 +100,19 @@ MQTTCMD_Lwt(CmdPacket *cmd) {
 
   // get retain
   cmdPopArg(&req, (uint8_t*)&client->connect_info.will_retain, 4);
+//EAGLEDAWG - prepend MQTT Client ID as first node of topic
+	if (flashConfig.mqtt_topic_begin)
+	{
+		char newtopic[128];
+		strcpy (newtopic,flashConfig.mqtt_clientid);
+		strcat (newtopic,"/");
+		strcat (newtopic, (char*)client->connect_info.will_topic);
+
+		os_free(client->connect_info.will_topic);
+		client->connect_info.will_topic = (char*)os_zalloc(os_strlen(newtopic) + 1);
+		os_strcpy((char*)client->connect_info.will_topic, newtopic);
+	}  
+//EAGLEDAWG - END
 
   DBG("MQTT: MQTTCMD_Lwt topic=%s, message=%s, qos=%d, retain=%d\n",
        client->connect_info.will_topic,
@@ -147,12 +163,30 @@ MQTTCMD_Publish(CmdPacket *cmd) {
 
   // get retain
   cmdPopArg(&req, &retain, sizeof(retain));
+//EAGLEDAWG - prepend MQTT Client ID as first node of topic
+	if (flashConfig.mqtt_topic_begin)
+	{
+		char newtopic[128];
+		strcpy (newtopic,flashConfig.mqtt_clientid);
+		strcat (newtopic,"/");
+		strcat (newtopic,(char*)topic);
 
-  DBG("MQTT: MQTTCMD_Publish topic=%s, data_len=%d, qos=%d, retain=%d\n",
-    topic, data_len, qos, retain);
+		DBG("MQTT: MQTTCMD_Publish topic=%s, data_len=%d, qos=%d, retain=%d\n",	newtopic, data_len, qos, retain);
 
-  MQTT_Publish(client, (char*)topic, (char*)data, data_len, qos%3, retain&1);
-  os_free(topic);
+		MQTT_Publish(client, (char*)newtopic, (char*)data, data_len, qos%3, retain&1);
+		
+		os_free(newtopic);
+		os_free(topic);
+	}
+	else
+	{
+		DBG("MQTT: MQTTCMD_Publish topic=%s, data_len=%d, qos=%d, retain=%d\n", topic, data_len, qos, retain);
+
+		MQTT_Publish(client, (char*)topic, (char*)data, data_len, qos%3, retain&1);
+		
+		os_free(topic);		
+	}
+//EAGLEDAWG - END
   os_free(data);
   return;
 }
@@ -178,11 +212,30 @@ MQTTCMD_Subscribe(CmdPacket *cmd) {
   // get qos
   uint32_t qos = 0;
   cmdPopArg(&req, (uint8_t*)&qos, 4);
+//EAGLEDAWG - prepend MQTT Client ID as first node of topic
+	if (flashConfig.mqtt_topic_begin)
+	{
+		char newtopic[128];
+		strcpy (newtopic,flashConfig.mqtt_clientid);
+		strcat (newtopic,"/");
+		strcat (newtopic,(char*)topic);
 
-  DBG("MQTT: MQTTCMD_Subscribe topic=%s, qos=%u\n", topic, qos);
+		DBG("MQTT: MQTTCMD_Subscribe topic=%s, qos=%u\n", newtopic, qos);
 
-  MQTT_Subscribe(client, (char*)topic, (uint8_t)qos);
-  os_free(topic);
+		MQTT_Subscribe(client, (char*)newtopic, (uint8_t)qos);
+
+		os_free(newtopic);
+		os_free(topic);
+	}
+	else
+	{
+		DBG("MQTT: MQTTCMD_Subscribe topic=%s, qos=%u\n", topic, qos);
+		MQTT_Subscribe(client, (char*)topic, (uint8_t)qos);
+		
+		os_free(topic);		
+	}
+
+//EAGLEDAWG - END
   return;
 }
 
