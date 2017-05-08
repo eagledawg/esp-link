@@ -32,6 +32,14 @@
                 <input type="checkbox" name="mqtt-enable"/>
                 <label>Enable MQTT client</label>
               </div>
+<!-- EAGLEDAWG - prepend MQTT Client ID as first node of topic -->
+			  <br>
+              <div>
+                <input type="checkbox" name="mqtt-topic-begin"/>
+                <label>Use Client ID as first node of topics</label>
+              </div>			  
+              <br>
+<!-- EAGLEDAWG - END -->
               <div>
                 <label>MQTT client state: </label>
                 <b id="mqtt-state"></b>
@@ -44,7 +52,10 @@
                 <label>Server port</label>
                 <input type="text" name="mqtt-port"/>
                 <label>Client ID</label>
-                <input type="text" name="mqtt-client-id"/>
+<!-- EAGLEDAWG - prepend MQTT Client ID as first node of topic -->
+<!-- EAGLEDAWG - Prevent characters that cannot be used in an MQTT topic from being entered for the MQTT Client ID -->
+                <input type="text" name="mqtt-client-id" id="mqtt-client-id" onkeypress="return blockSpecialChar(event)" onpaste="return false;"  />
+<!-- EAGLEDAWG - END -->
                 <label>Client Timeout (seconds)</label>
                 <input type="text" name="mqtt-timeout" />
                 <label>Keep Alive Interval (seconds)</label>
@@ -100,5 +111,16 @@ onLoad(function() {
   bnd($("#mqtt-form"), "submit", changeMqtt);
   bnd($("#mqtt-status-form"), "submit", changeMqttStatus);
 });
+//EAGLEDAWG - prepend MQTT Client ID as first node of topic
+function blockSpecialChar(e) {
+	var k = e.keyCode;
+		
+	// Prevent a space, forward slash, plus sign or hashtag in the Client ID field
+	if ((k == 32) || (k == 47) || (k == 43)  || (k == 35))
+		return false;
+	else
+		return true;
+}
+//EAGLEDAWG - END
 </script>
 </body></html>
